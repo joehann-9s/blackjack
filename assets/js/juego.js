@@ -1,138 +1,160 @@
-/*
-    2C Clubs / Treboles
-    2D Diamonds / Diamantes
-    2H Hearts / Corazones
-    2S Spades / Espadas
+const myModule = (() => {
+  "use strict";
+
+  let deck = [];
+  const types = ["C", "D", "H", "S"],
+    specials = ["A", "J", "Q", "K"];
+
+  let playersPoints = [];
+
+  // HTML references
+  const btnRequest = document.querySelector("#btnRequest"),
+    btnStop = document.querySelector("#btnStop"),
+    btnNewGame = document.querySelector("#btnNewGame");
+
+  const divPlayerCards = document.querySelectorAll(".divCards"),
+    htmlScore = document.querySelectorAll("small");
+
+
+  // Init game
+  const initGame = (numPlayers = 2) => {
+    deck = createDeck();
+
+    playersPoints = [];
+    for (let i = 0; i < numPlayers; i++) {
+      playersPoints.push(0);
+    }
     
-*/
+    htmlScore.forEach( elem => elem.innerText = 0);
+    divPlayerCards.forEach( elem => elem.innerHTML = '');
 
-let deck = [];
-const types = ["C", "D", "H", "S"];
-const specials = ["A", "J", "Q", "K"];
+    btnRequest.disabled = false;
+    btnStop.disabled = false;
+    
+  };
 
-let playerScore = 0,
-  computerScore = 0;
+  // Create new deck
+  const createDeck = () => {
 
-// HTML references
-const btnRequest = document.querySelector("#btnRequest");
-const btnStop = document.querySelector("#btnStop");
-const btnNewGame = document.querySelector("#btnNewGame");
+    deck = [];
+    for (let i = 2; i <= 10; i++) {
+      for (let type of types) {
+        deck.push(i + type);
+      }
+    }
 
-const divPlayerCards = document.querySelector("#player-cards");
-const divComputerCards = document.querySelector("#computer-cards");
-
-const htmlScore = document.querySelectorAll("small");
-// Create new deck
-const createDeck = () => {
-  for (let i = 2; i <= 10; i++) {
     for (let type of types) {
-      deck.push(i + type);
+      for (let spe of specials) {
+        deck.push(spe + type);
+      }
     }
-  }
+    return _.shuffle(deck);
+  };
 
-  for (let type of types) {
-    for (let spe of specials) {
-      deck.push(spe + type);
+  // Allow take a card from the deck
+  const requestCard = () => {
+    if (deck.length === 0) {
+      throw "Deck is empty";
     }
-  }
-  deck = _.shuffle(deck);
-  console.log(deck);
-  return deck;
-};
+    return deck.pop();
+  };
 
-createDeck();
+  const valueCard = (card) => {
+    const valueCard = card.substring(0, card.length - 1);
+    return (isNaN(valueCard)) ?
+            (valueCard === "A") ? 11 : 10
+            : valueCard * 1;
+  };
 
-// Allow take a card from the deck
-const requestCard = () => {
-  if (deck.length === 0) {
-    throw "Deck is empty";
-  }
-  const card = deck.pop();
-  return card;
-};
+  // Turn: 0 = 1st player y the last is the computer
+  const acumulatePoints = (card, turn) => {
+    playersPoints[turn] = playersPoints[turn] + valueCard(card);
+    htmlScore[turn].innerText = playersPoints[turn];
+    return playersPoints[turn];
+  };
 
-const valueCard = (card) => {
-  const valueCard = card.substring(0, card.length - 1);
-  return isNaN(valueCard) ? (valueCard === "A" ? 11 : 10) : valueCard * 1;
-};
-
-// Computer turn
-const computerTurn = (minScore) => {
-  do {
-    const card = requestCard();
-
-    computerScore = computerScore + valueCard(card);
-    htmlScore[1].innerHTML = computerScore;
+  // Create card
+  const createCard = (card, turn) => {
 
     const imgCard = document.createElement("img");
     imgCard.src = `assets/cards/${card}.png`;
     imgCard.classList.add("blackjack-card");
-    divComputerCards.append(imgCard);
+    divPlayerCards[turn].append(imgCard);
+  };
+  // Who win
+  const determinedWinner = () => {
 
-    if (minScore > 21) {
-      break;
-    }
-  } while (computerScore < minScore && minScore <= 21);
+    const [ minScore, computerScore] = playersPoints;
 
-  setTimeout(() => {
-    if (computerScore === minScore) {
-      alert("Equals");
-    } else if (minScore > 21) {
-      alert("Computer wins");
-    } else if (computerScore > 21) {
-      alert("You win");
-    } else {
-      alert("Computer wins");
-    }
-  }, 10);
-};
-
-// Events
-btnRequest.addEventListener("click", () => {
-  const card = requestCard();
-  console.log(card);
-
-  playerScore = playerScore + valueCard(card);
-  htmlScore[0].innerHTML = playerScore;
-
-  const imgCard = document.createElement("img");
-  imgCard.src = `assets/cards/${card}.png`;
-  imgCard.classList.add("blackjack-card");
-  divPlayerCards.append(imgCard);
-
-  if (playerScore > 21) {
-    console.warn("You lose the game");
-    btnRequest.disabled = true;
-    btnStop.disabled = true;
-    computerTurn(playerScore);
-  } else if (playerScore === 21) {
-    console.warn("Blackjack");
-    btnRequest.disabled = true;
-    btnStop.disabled = true;
-    computerTurn(playerScore);
+    setTimeout(() => {
+      if (computerScore === minScore) {
+        alert("Equals");
+      } else if (minScore > 21) {
+        alert("Computer wins");
+      } else if (computerScore > 21) {
+        alert("You win");
+      } else {
+        alert("Computer wins");
+      }
+    }, 100);
   }
-});
 
-btnStop.addEventListener("click", () => {
-  btnRequest.disabled = true;
-  btnStop.disabled = true;
-  computerTurn(playerScore);
-});
 
-btnNewGame.addEventListener("click", () => {
-    console.clear();
-    deck = [];
-    deck = createDeck();
-    playerScore = 0;
-    computerScore = 0;
+  // Computer turn
+  const computerTurn = (minScore) => {
+    let computerScore = 0;
 
-    htmlScore[0].innerText = 0;
-    htmlScore[1].innerText = 0;
+    do {
+      const card = requestCard();
+      computerScore = acumulatePoints(card, playersPoints.length - 1);
+      createCard( card, playersPoints.length - 1);
 
-    divComputerCards.innerHTML = '';
-    divPlayerCards.innerHTML = '';
+   
+    } while ((computerScore < minScore) && (minScore <= 21));
 
-    btnRequest.disabled = false;
-    btnStop.disabled = false;
+    determinedWinner(); 
+  };
 
-});
+
+
+  // Events
+  btnRequest.addEventListener("click", () => {
+    const card = requestCard();
+    const playerScore = acumulatePoints(card, 0);
+
+    createCard(card, 0);
+    
+
+
+    if (playerScore > 21) {
+      console.warn("You lose the game");
+      btnRequest.disabled = true;
+      btnStop.disabled = true;
+      computerTurn(playerScore);
+
+    } else if (playerScore === 21) {
+      console.warn("Blackjack");
+      btnRequest.disabled = true;
+      btnStop.disabled = true;
+      computerTurn(playerScore);
+    }
+
+  });
+
+
+  btnStop.addEventListener("click", () => {
+    btnRequest.disabled = true;
+    btnStop.disabled = true;
+    computerTurn(playersPoints[0]);
+  });
+
+  btnNewGame.addEventListener("click", () => {
+    initGame();
+    
+  });
+
+  return {
+    newGame : initGame
+  };
+  
+})();

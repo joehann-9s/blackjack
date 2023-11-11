@@ -22,8 +22,8 @@
     <div class="row mt-2">
         <div class="col text-center">
             <button id="btnNewGame" class="btn btn-danger">Nuevo Juego</button>
-            <button id="btnRequest" class="btn btn-primary">Pedir carta</button>
-            <button id="btnStop" class="btn btn-primary">Detener</button>
+            <button id="btnRequest" disabled="disabled" class="btn btn-primary">Pedir carta</button>
+            <button id="btnStop" disabled="disabled" class="btn btn-primary">Detener</button>
 
 
 
@@ -34,7 +34,7 @@
     <div class="row container">
         <div class="col">
             <h1>Player 1 - <small>0</small></h1>
-            <div id="player-cards">
+            <div id="player-cards" class="divCards">
                 <!-- <img class="blackjack-card" src="assets/cartas/10C.png">
                 <img class="blackjack-card" src="assets/cartas/10C.png">
                 <img class="blackjack-card" src="assets/cartas/10C.png"> -->
@@ -48,7 +48,7 @@
     <div class="row container mt-2">
         <div class="col">
             <h1>Computer - <small>0</small></h1>
-            <div id="computer-cards">
+            <div id="computer-cards" class="divCards">
                 
 
             </div>
@@ -56,5 +56,8 @@
     </div>
     <script src="assets/js/underscore-min.js"></script>
     <script src="assets/js/juego.js"></script>
+    <script>
+      myModule.newGame();
+    </script>
   </body>
 </html>
